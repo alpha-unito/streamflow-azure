@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Azure Batch Plugin Schema",
+  "type": "object",
+  "properties": {
+    "batch_account_url": {
+      "type": "string",
+      "description": "URL dell'account Azure Batch"
+    },
+    "pool": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificativo del pool"
+        },
+        "vm_size": {
+          "type": "string",
+          "description": "Dimensione della VM utilizzata nel pool"
+        },
+        "node_count": {
+          "type": "integer",
+          "description": "Numero di nodi di calcolo nel pool"
+        },
+        "os_image": {
+          "type": "object",
+          "properties": {
+            "publisher": {
+              "type": "string",
+              "description": "Publisher dell'immagine VM"
+            },
+            "offer": {
+              "type": "string",
+              "description": "Offerta dell'immagine VM"
+            },
+            "sku": {
+              "type": "string",
+              "description": "SKU dell'immagine VM"
+            }
+          },
+          "required": ["publisher", "offer", "sku"]
+        }
+      },
+      "required": ["id", "vm_size", "node_count", "os_image"]
+    },
+    "job": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificativo del job"
+        },
+        "pool_id": {
+          "type": "string",
+          "description": "ID del pool su cui il job verrà eseguito"
+        }
+      },
+      "required": ["id", "pool_id"]
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificativo del task"
+        },
+        "command_line": {
+          "type": "string",
+          "description": "Comando che verrà eseguito nel task"
+        },
+        "resource_files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file_path": {
+                "type": "string",
+                "description": "Percorso del file necessario per il task"
+              },
+              "blob_source": {
+                "type": "string",
+                "description": "Percorso della sorgente blob di Azure"
+              }
+            },
+            "required": ["file_path", "blob_source"]
+          },
+          "description": "File di risorse richiesti dal task"
+        }
+      },
+      "required": ["id", "command_line"]
+    }
+  },
+  "required": ["batch_account_url", "pool", "job", "task"]
+}
