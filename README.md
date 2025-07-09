@@ -1,8 +1,8 @@
-# Azure Batch Streamflow Plugin
+# Azure Streamflow Plugin
 
 ## Descrizione
 
-**Azure Batch Streamflow Plugin** è un plugin per [Streamflow](https://streamflow.com) che consente di integrare i servizi di **Azure Batch**, una piattaforma di elaborazione di lavori batch su larga scala. Questo plugin consente di gestire pool di nodi di calcolo, inviare job e task, e monitorare l'esecuzione direttamente tramite l'interfaccia di Streamflow.
+**Azure Streamflow Plugin** è un plugin per [Streamflow](https://streamflow.di.unito.it/) che consente di integrare i servizi di **Azure Batch**, una piattaforma di elaborazione di lavori batch su larga scala. Questo plugin consente di gestire pool di nodi di calcolo, inviare job e task, e monitorare l'esecuzione direttamente tramite l'interfaccia di Streamflow.
 
 ## Caratteristiche
 
@@ -18,11 +18,13 @@
 - Un account Azure con i servizi di **Azure Batch** abilitati
 
 ## Struttura del Progetto
-azure_batch_streamflow_plugin/
-├── azure_batch_streamflow/
+azure_streamflow_plugin/
+├── azure_streamflow/
 │   ├── __init__.py
-│   ├── azure_batch_plugin.py
+│   ├── plugin.py
 │   ├── executor.py
+│   ├── version.py
+│   ├── connector.py
 │   ├── schemas/
 │   │   └── azure_batch.json
 │   └── config.py
@@ -30,7 +32,7 @@ azure_batch_streamflow_plugin/
 ├── README.md
 └── tests/
     ├── __init__.py
-    └── test_azure_batch_plugin.py
+    └── test_azure_plugin.py
 
 
 ## Installazione
@@ -41,7 +43,7 @@ Clona questo repository nel tuo ambiente locale:
 
 ```bash
 git clone https://github.com/tuo-nome/azure-batch-streamflow-plugin.git
-cd azure-batch-streamflow-plugin 
+cd azure-streamflow-plugin 
 ```
 
 ### Passo 2:  Installa le Dipendenze
@@ -86,18 +88,18 @@ Crea un file di configurazione `azure_batch_config.json` con le seguenti informa
 ### Creazione del Pool
 
 ``` Python
-from azure_batch_streamflow_plugin.executor import AzureBatchExecutor
-from azure_batch_streamflow_plugin.config import AzureBatchConfig
+from azure_streamflow_plugin.executor import AzureExecutor
+from azure_streamflow_plugin.config import AzureConfig
 
 # Carica la configurazione
-config = AzureBatchConfig({
+config = AzureConfig({
     "batch_account_url": "https://<your-batch-account>.<region>.batch.azure.com",
     "client_id": "<your-client-id>",
     "client_secret": "<your-client-secret>",
     "tenant_id": "<your-tenant-id>"
 })
 
-executor = AzureBatchExecutor(config)
+executor = AzureExecutor(config)
 
 # Creazione del pool
 executor.create_pool(
