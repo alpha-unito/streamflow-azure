@@ -6,7 +6,7 @@ from streamflow.core.exception import WorkflowDefinitionException, WorkflowExecu
 from azure_streamflow.executor import AzureExecutor
 from azure_streamflow.config import AzureConfig
 
-class AzureStreamFlowConnector(Connector):
+class AzureBatchConnector(Connector):
     def __init__(self, config):
         self.config = AzureConfig(config)
         self.executor = AzureExecutor(self.config)

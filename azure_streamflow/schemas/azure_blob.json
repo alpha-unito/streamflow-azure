@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Azure Blob Connector Schema",
+  "type": "object",
+  "properties": {
+    "blob_account_url": {
+      "type": "string",
+      "description": "URL of the Azure Blob Storage account"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["upload", "download"],
+      "description": "Action to perform: upload or download"
+    },
+    "container": {
+      "type": "string",
+      "description": "Name of the blob container"
+    },
+    "blob_name": {
+      "type": "string",
+      "description": "Name of the blob object"
+    },
+    "local_path": {
+      "type": "string",
+      "description": "Local file path for reading or writing"
+    }
+  },
+  "required": ["blob_account_url", "action", "container", "blob_name", "local_path"]
+}

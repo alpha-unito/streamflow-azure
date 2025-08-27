@@ -5,6 +5,7 @@ streamflow~=0.2.0.dev11
 azure-batch>=14.0.0
 azure-mgmt-batch>=18.0.0
 azure-identity
+azure-storage-blob
 msrestazure
 aiohttp>=3.8.0
 pytest-asyncio

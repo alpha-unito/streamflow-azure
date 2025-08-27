@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "streamflow-azure"
+authors = [
+    {name = "Roberto Bagnato", email = "roberto.bagnato@unicampus.it"},
+    {name = "Roberto Bagnato", email = "rbagnato@sogei.it"}
+]
+description = "StreamFlow Azure plugin for Batch and Blob Storage integration"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX",
+    "Operating System :: MacOS",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Distributed Computing"
+]
+dynamic = ["dependencies", "version"]
+
+[project.urls]
+Repository = "https://github.com/alpha-unito/streamflow-azure"
+
+[project.entry-points."unito.streamflow.plugin"]
+"eu.across.azure.batch" = "azure_streamflow.plugin:AzureStreamFlowPlugin"
+"eu.across.azure.blob" = "azure_streamflow.plugin:AzureStreamFlowPlugin"
+
+[tool.setuptools]
+packages = [
+    "azure_streamflow"
+]
+zip-safe = true
+
+[tool.setuptools.package-data]
+"azure_streamflow" = ["schemas/*.json"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+version = {attr = "azure_streamflow.version.VERSION"}

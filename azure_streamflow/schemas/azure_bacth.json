@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Azure Plugin Schema",
+  "title": "Azure Batch Connector Schema",
   "type": "object",
   "properties": {
     "batch_account_url": {
