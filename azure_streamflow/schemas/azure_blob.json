@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://streamflow.di.unito.it/schemas/deployment/connector/azure_blob.json",
   "title": "Azure Blob Connector Schema",
   "type": "object",
   "properties": {
@@ -9,8 +10,8 @@
     },
     "action": {
       "type": "string",
-      "enum": ["upload", "download"],
-      "description": "Action to perform: upload or download"
+      "enum": ["upload", "download", "read"],
+      "description": "Action to perform: upload, download or read"
     },
     "container": {
       "type": "string",
@@ -23,7 +24,39 @@
     "local_path": {
       "type": "string",
       "description": "Local file path for reading or writing"
+    },
+
+    "auth_mode": {
+      "type": "string",
+      "enum": ["default", "certificate"],
+      "description": "Authentication mode: DefaultAzureCredential or certificate-based",
+      "default": "default"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for certificate-based authentication"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Client (application) ID for certificate-based authentication"
+    },
+    "certificate_path": {
+      "type": "string",
+      "description": "Path to the client certificate file (PEM)"
+    },
+    "certificate_ca_path": {
+      "type": "string",
+      "description": "Path to the Ca certificate file"
     }
   },
-  "required": ["blob_account_url", "action", "container", "blob_name", "local_path"]
+  "allOf": [
+    {
+      "if": {
+        "properties": { "auth_mode": { "const": "certificate" } }
+      },
+      "then": {
+        "required": ["tenant_id", "client_id", "certificate_path", "certificate_ca_path"]
+      }
+    }
+  ]
 }

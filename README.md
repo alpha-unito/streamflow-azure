@@ -1,23 +1,56 @@
-# Azure Streamflow Plugin
+# Azure StreamFlow Plugin
 
 ## Descrizione
 
-**Azure Streamflow Plugin** è un plugin per [Streamflow](https://streamflow.di.unito.it/) che consente di integrare i servizi di **Azure Batch**, una piattaforma di elaborazione di lavori batch su larga scala. Questo plugin consente di gestire pool di nodi di calcolo, inviare job e task, e monitorare l'esecuzione direttamente tramite l'interfaccia di Streamflow.
+**Azure StreamFlow Plugin** è un plugin per [StreamFlow](https://streamflow.di.unito.it/) che consente l’integrazione con i servizi **Azure Batch** e **Azure Blob Storage**.
 
-## Caratteristiche
+Il plugin permette di:
 
-- **Creazione e gestione di pool di calcolo** su Azure Batch.
-- **Invio di job** su Azure Batch con supporto per task multipli.
-- **Monitoraggio dei job** e recupero degli stati di esecuzione.
-- **Eliminazione automatica dei pool** una volta completati i job (opzionale).
-  
+- usare **Azure Batch** come backend di esecuzione per workflow StreamFlow
+- gestire automaticamente **pool**, **job** e **task**
+- supportare **autenticazione tramite certificato X.509**
+- funzionare correttamente con **StreamFlow ≥ 0.2.0dev13**
+
+Il plugin segue il **modello di esecuzione di StreamFlow**, dove:
+- StreamFlow gestisce scheduling e CWL
+- il connector Azure si occupa dell’interazione con Azure
+
+---
+
+## Componenti supportati
+
+### Azure Batch Connector
+- Creazione automatica dei **pool**
+- Sottomissione dei **job**
+- Esecuzione dei **task**
+- Monitoraggio dello stato
+- Cleanup opzionale delle risorse
+
+### Azure Blob Connector
+- Upload/download di file da Azure Blob Storage
+- Supporto a **certificate authentication**
+- Opzione per disabilitare temporaneamente la verifica TLS 
+
+---
+
 ## Requisiti
 
-- Python 3.7 o superiore
-- [Azure SDK for Python](https://docs.microsoft.com/it-it/python/azure/)
-- Un account Azure con i servizi di **Azure Batch** abilitati
+- Python **3.10+** (consigliato)
+- StreamFlow **0.2.0dev13**
+- Azure SDK:
+  - `azure-batch`
+  - `azure-identity`
+  - `azure-storage-blob`
+- Account Azure con:
+  - **Azure Batch**
+  - **Azure Active Directory**
+  - **Azure Blob Storage** (opzionale)
 
-## Struttura del Progetto
+---
+
+## Struttura del progetto
+
+
 azure_streamflow_plugin/
 ├── azure_streamflow/
 │   ├── __init__.py
@@ -26,6 +59,7 @@ azure_streamflow_plugin/
 │   ├── version.py
 │   ├── connector.py
 │   ├── schemas/
+|   |   └── azure_blob.json
 │   │   └── azure_batch.json
 │   └── config.py
 ├── setup.py
@@ -42,7 +76,7 @@ azure_streamflow_plugin/
 Clona questo repository nel tuo ambiente locale:
 
 ```bash
-git clone https://github.com/tuo-nome/azure-batch-streamflow-plugin.git
+git clone https://github.com/alpha-unito/streamflow-azure.git
 cd azure-streamflow-plugin 
 ```
 
@@ -56,88 +90,92 @@ pip install .
 
 ### Esempio di Configurazione JSON
 
-Crea un file di configurazione `azure_batch_config.json` con le seguenti informazioni:
+Crea un file di configurazione `streamflow.yml` con le seguenti informazioni:
 
-```json
-{
-    "batch_account_url": "https://<your-batch-account>.<region>.batch.azure.com",
-    "client_id": "<your-azure-client-id>",
-    "client_secret": "<your-azure-client-secret>",
-    "tenant_id": "<your-azure-tenant-id>",
-    "pool": {
-        "id": "mypool",
-        "vm_size": "STANDARD_A1_v2",
-        "node_count": 2,
-        "os_image": {
-            "publisher": "Canonical",
-            "offer": "UbuntuServer",
-            "sku": "18.04-LTS"
-        }
-    },
-    "job": {
-        "id": "myjob",
-        "pool_id": "mypool"
-    },
-    "task": {
-        "id": "mytask",
-        "command_line": "/bin/bash -c 'echo Hello, World!'"
-    }
-}
+```yml
+version: v1.0
+
+workflows:
+  batch-example:
+    type: cwl
+    config:
+      file: example.cwl
+    bindings:
+      - step: /
+        target:
+          deployment: azure-batch-model
+
+deployments:
+  azure-batch-model:
+    type: eu.across.azure.batch
+    config:
+      batch_account_url: "https://<account>.<region>.batch.azure.com"
+
+      auth:
+        auth_mode: certificate
+        tenant_id: "<tenant-id>"
+        client_id: "<client-id>"
+        certificate_path: "/path/to/cert.pem"
+
+      pool:
+        id: "mypool"
+        vm_size: "STANDARD_D2_v2"
+        node_count: 2
+        os_image:
+          publisher: "Canonical"
+          offer: "UbuntuServer"
+          sku: "20_04-lts"
+
+      job:
+        id: "myjob"
+        pool_id: "mypool"
+
+      task:
+        id: "mytask"
+```
+### Autenticazione
+
+| Modalità      | Descrizione                  |
+| ------------- | ---------------------------- |
+| `default`     | Usa `DefaultAzureCredential` |
+| `certificate` | Usa certificato X.509        |
+| `shared_key`  | Usa account key Azure Batch  |
+
+### Certificate authentication 
+```yml
+auth:
+  auth_mode: certificate
+  tenant_id: "<tenant-id>"
+  client_id: "<client-id>"
+  certificate_path: "/path/to/certificate.pem"
+```
+### CWL di esempio
+
+Crea un file example.cwl
+
+```yml
+cwlVersion: v1.2
+class: CommandLineTool
+
+baseCommand: ["bash", "-lc"]
+arguments:
+  - |
+    echo "Hello from Azure Batch"
+    echo '{}' > cwl.output.json
+
+inputs: {}
+
+outputs:
+  result:
+    type: File
+    outputBinding:
+      glob: cwl.output.json
 ```
 
-### Creazione del Pool
+### Esecuzione
 
-``` Python
-from azure_streamflow_plugin.executor import AzureExecutor
-from azure_streamflow_plugin.config import AzureConfig
+Esegui il streamflow.yml
 
-# Carica la configurazione
-config = AzureConfig({
-    "batch_account_url": "https://<your-batch-account>.<region>.batch.azure.com",
-    "client_id": "<your-client-id>",
-    "client_secret": "<your-client-secret>",
-    "tenant_id": "<your-tenant-id>"
-})
-
-executor = AzureExecutor(config)
-
-# Creazione del pool
-executor.create_pool(
-    pool_id="mypool",
-    vm_size="STANDARD_A1_v2",
-    node_count=2,
-    publisher="Canonical",
-    offer="UbuntuServer",
-    sku="18.04-LTS"
-)
-```
-
-###  Invio di un Job
-``` Python
-executor.submit_job(job_id="myjob", pool_id="mypool")
-```
-
-###  Invio di un Task
-``` Python
-executor.submit_task(
-    job_id="myjob",
-    task_id="mytask",
-    command_line="/bin/bash -c 'echo Hello, World!'"
-)
-```
-
-###  Monitoraggio di un Job
-``` Python
-status = executor.monitor_job(job_id="myjob")
-print(f"Job status: {status}")
-```
-
-###  Eliminazione di un Pool
-``` Python
-executor.delete_pool(pool_id="mypool")
-```
-
-###  Test
-``` Python
-pytest tests/
+```bash
+streamflow run streamflow.yml
 ```

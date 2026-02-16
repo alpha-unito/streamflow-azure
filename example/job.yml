@@ -1,0 +1,17 @@
+ssh_script_1:
+  class: File
+  path: run-ssh-1.py
+ssh_script_2:
+  class: File
+  path: run-ssh-2.py
+ssh_script_3:
+  class: File
+  path: run-ssh-3.py
+ssh_script_4:
+  class: File
+  path: run-ssh-4.py
+
+streamflow_path: XXXXXX
+streamflow_workflow: XXXXXX
+streamflow_outdir: XXXXXX
+streamflow_tmpdir: XXXXXX

@@ -1,0 +1,44 @@
+#!/usr/bin/env streamflow
+version: v1.0
+workflows:
+  master:
+    type: cwl
+    config:
+      file: main.cwl
+      settings: job.yml
+      
+    bindings:
+      - step: /step1
+        target:
+          deployment: local
+      - step: /step2
+        target:
+          deployment: slurm
+          service: broadwell
+      - step: /step3
+        target:
+          deployment: local
+      - step: /step4
+        target:
+          deployment: local
+      - step: /step5
+        target:
+          deployment: local
+
+deployments:
+  local:
+    workdir: /tmp
+    type: local
+    config: {}
+  slurm:
+    type: unito.slurmrest
+    workdir: XXXXXX
+    config:
+      api_address: XXXXXX
+      jwt_token: XXXXXX
+      services:
+        broadwell:
+          environment:
+          # PATH should include the path to slurm binaries
+            - "PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/slurm/bin"
+          partition: "broadwell"

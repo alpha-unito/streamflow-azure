@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Azure Batch Connector Schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "batch_account_url": {
+      "type": "string",
+      "description": "URL dell'account Azure Batch (es: https://<account>.<region>.batch.azure.com)"
+    },
+
+    "auth": {
+      "type": "object",
+      "description": "Configurazione autenticazione (supporta modalità certificate o altre modalità previste da AzureConfig/AzureExecutor)",
+      "properties": {
+        "auth_mode": {
+          "type": "string",
+          "enum": ["default", "certificate", "shared_key"],
+          "default": "default",
+          "description": "Modalità di autenticazione"
+        },
+
+        "tenant_id": { "type": "string", "description": "Tenant ID (certificate mode)" },
+        "client_id": { "type": "string", "description": "Client ID (certificate mode)" },
+        "certificate_path": { "type": "string", "description": "Percorso al certificato PEM/PFX (certificate mode)" },
+        "certificate_password": { "type": "string", "description": "Password del certificato (se necessaria)" },
+
+        "batch_account_name": { "type": "string", "description": "Nome account Batch (shared_key mode / opzionale)" },
+        "batch_account_key": { "type": "string", "description": "Chiave account Batch (shared_key mode / opzionale)" },
+        "batch_account_resource_id": {
+          "type": "string",
+          "description": "Resource ID dell'account Batch (opzionale, utile per alcune configurazioni AAD)"
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "pool": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificativo del pool" },
+        "vm_size": { "type": "string", "description": "Dimensione della VM utilizzata nel pool" },
+        "node_count": { "type": "integer", "minimum": 0, "description": "Numero di nodi di calcolo nel pool" },
+        "os_image": {
+          "type": "object",
+          "properties": {
+            "publisher": { "type": "string", "description": "Publisher dell'immagine VM" },
+            "offer": { "type": "string", "description": "Offerta dell'immagine VM" },
+            "sku": { "type": "string", "description": "SKU dell'immagine VM" }
+          },
+          "required": ["publisher", "offer", "sku"],
+          "additionalProperties": true
+        }
+      },
+      "required": ["id", "vm_size", "node_count", "os_image"],
+      "additionalProperties": true
+    },
+
+    "job": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificativo del job" },
+        "pool_id": { "type": "string", "description": "ID del pool su cui il job verrà eseguito" }
+      },
+      "required": ["id", "pool_id"],
+      "additionalProperties": true
+    },
+
+    "task": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificativo del task (base). Se StreamFlow avvia più job/step, considera di renderlo unico." },
+        "command_line": {
+          "type": "string",
+          "description": "Comando di default (opzionale). In StreamFlow il comando reale viene passato a runtime in Connector.run()."
+        },
+        "resource_files": {
+          "type": "array",
+          "description": "File di risorse richiesti dal task",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file_path": { "type": "string", "description": "Percorso del file nel nodo" },
+              "blob_source": { "type": "string", "description": "Sorgente blob (URL/SAS) da cui scaricare la risorsa" }
+            },
+            "required": ["file_path", "blob_source"],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": ["id"],
+      "additionalProperties": true
+    },
+
+    "insecure_ssl": {
+      "type": "boolean",
+      "default": false,
+      "description": "DEBUG ONLY: disabilita la verifica TLS (AAD + chiamate HTTP). Non usare in produzione."
+    },
+    "aad_ca_bundle": {
+      "type": "string",
+      "description": "Percorso ad un bundle CA in PEM da usare per validare login.microsoftonline.com (e altre chiamate HTTPS)."
+    }
+  },
+
+  "required": ["batch_account_url", "pool", "job", "task"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "auth": {
+            "properties": { "auth_mode": { "const": "certificate" } },
+            "required": ["auth_mode"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "auth": {
+            "required": ["tenant_id", "client_id", "certificate_path"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "auth": {
+            "properties": { "auth_mode": { "const": "shared_key" } },
+            "required": ["auth_mode"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "auth": {
+            "required": ["batch_account_name", "batch_account_key"]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 pytest~=8.3.3
 setuptools~=75.1.0
-azure-core~=1.31.0
-streamflow~=0.2.0.dev11
-azure-batch>=14.0.0
+azure-core>=1.35.0,<2.0.0
+streamflow~=0.2.0.dev13
+azure-batch==15.1.0b1
 azure-mgmt-batch>=18.0.0
 azure-identity
 azure-storage-blob
@@ -11,5 +11,6 @@ aiohttp>=3.8.0
 pytest-asyncio
 flake8
 mypy
-
+importlib_resources
+aiofiles
 
